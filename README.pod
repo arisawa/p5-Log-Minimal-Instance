@@ -1,0 +1,1 @@
+lib/Log/Minimal/Instance.pm
