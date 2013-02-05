@@ -21,7 +21,7 @@ BEGIN {
                 local $Log::Minimal::TRACE_LEVEL = 1;
                 local $Log::Minimal::LOG_LEVEL = uc $self->{level} if $self->{level};
                 local $Log::Minimal::PRINT = $self->{_print};
-                $parent_code->( ($suffix eq 'd') ? @_ : Log::Minimal::ddf(@_) );
+                $parent_code->( ($suffix eq 'd') ? Log::Minimal::ddf(@_) : @_ );
             };
             *{$method} = $code;
         }
