@@ -6,20 +6,23 @@ use parent 'Log::Minimal';
 use File::Stamped;
 
 our $VERSION = '0.01';
+our $TRACE_LEVEL = 0;
 
 BEGIN {
     # for object methods
     for my $level (qw/crit warn info debug croak/) {
         for my $suffix (qw/f ff d/) {
             my $method = $level.$suffix;
+            next if $method eq 'debugd';
+
             my $parent_code = Log::Minimal->can( ($suffix eq 'd') ? $level."f" : $method );
 
             no strict 'refs';
             my $code = sub {
                 my $self = shift;
                 my $pattern = $self->{pattern};
-                local $Log::Minimal::TRACE_LEVEL = 1;
-                local $Log::Minimal::LOG_LEVEL = uc $self->{level} if $self->{level};
+                local $Log::Minimal::TRACE_LEVEL = $self->{trace_level} || 1;
+                local $Log::Minimal::LOG_LEVEL = uc $self->{log_level} if $self->{log_level};
                 local $Log::Minimal::PRINT = $self->{_print};
                 $parent_code->( ($suffix eq 'd') ? Log::Minimal::ddf(@_) : @_ );
             };
@@ -31,14 +34,14 @@ BEGIN {
 sub new {
     my ($class, %args) = @_;
 
-    my $level   = $args{level};
     my $pattern = $args{pattern} || undef;
     my $fh      = $pattern ? File::Stamped->new( pattern => $pattern ) : undef;
 
     bless {
-        level   => $level,
+        trace_level => $args{trace_level} || 0,
+        log_level   => $args{log_level}   || 'DEBUG',
         pattern => $pattern,
-        _print  =>  $fh ? sub {
+        _print  => $fh ? sub {
             my ($time, $type, $message, $trace) = @_;
             print {$fh}  "$time [$type] $message at $trace\n"
         } : sub {
@@ -55,7 +58,8 @@ sub log_to {
 
     my $print = $self->{_print};
 
-    local $Log::Minimal::TRACE_LEVEL = 1;
+    local $Log::Minimal::TRACE_LEVEL = $self->{trace_level} || 1;
+    local $Log::Minimal::LOG_LEVEL = uc $self->{log_level} if $self->{log_level};
     local $Log::Minimal::PRINT = sub {
         my ($time, $type, $message, $trace) = @_;
         print {$fh} "$time $message at $trace\n";
@@ -67,6 +71,28 @@ sub log_to {
 
     $self->{_print} = $print;
 }
+
+sub debugd {
+    my ($self, @m) = @_;
+
+    my $print = $self->{_print};
+
+    local $Log::Minimal::TRACE_LEVEL = $self->{trace_level} || 0;
+    local $Log::Minimal::PRINT = sub {
+        my ($time, $type, $message, $trace, $raw) = @_;
+        local $Data::Dumper::Indent = 1;
+        local $Data::Dumper::Terse  = 1;
+        local $Data::Dumper::Useqq  = 1;
+        local $Data::Dumper::Sortkeys = 1;
+        $message = Data::Dumper::Dumper($raw);
+
+        print STDERR "[$type DUMP]\n $message at $trace\n";
+    };
+    Log::Minimal::_log('DEBUG', 0, \@m);
+
+    $self->{_print} = $print;
+}
+
 
 1;
 
