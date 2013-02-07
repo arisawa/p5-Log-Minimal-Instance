@@ -38,7 +38,7 @@ sub new {
     my $fh      = $pattern ? File::Stamped->new( pattern => $pattern ) : undef;
 
     bless {
-        trace_level => $args{trace_level} || 0,
+        trace_level => $args{trace_level} || undef,
         log_level   => $args{log_level}   || 'DEBUG',
         pattern => $pattern,
         _print  => $fh ? sub {
@@ -58,7 +58,8 @@ sub log_to {
 
     my $print = $self->{_print};
 
-    local $Log::Minimal::TRACE_LEVEL = $self->{trace_level} || 1;
+    local $Log::Minimal::TRACE_LEVEL
+        = defined $self->{trace_level} ? $self->{trace_level} : 1;
     local $Log::Minimal::LOG_LEVEL = uc $self->{log_level} if $self->{log_level};
     local $Log::Minimal::PRINT = sub {
         my ($time, $type, $message, $trace) = @_;
@@ -77,7 +78,8 @@ sub debugd {
 
     my $print = $self->{_print};
 
-    local $Log::Minimal::TRACE_LEVEL = $self->{trace_level} || 0;
+    local $Log::Minimal::TRACE_LEVEL
+        = defined $self->{trace_level} ? $self->{trace_level} : 1;
     local $Log::Minimal::PRINT = sub {
         my ($time, $type, $message, $trace, $raw) = @_;
         local $Data::Dumper::Indent = 1;
