@@ -6,7 +6,6 @@ use parent 'Log::Minimal';
 use File::Stamped;
 
 our $VERSION = '0.01';
-our $TRACE_LEVEL = 0;
 
 BEGIN {
     # for object methods
