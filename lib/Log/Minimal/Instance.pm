@@ -21,7 +21,8 @@ BEGIN {
             my $code = sub {
                 my $self = shift;
                 my $pattern = $self->{pattern};
-                local $Log::Minimal::TRACE_LEVEL = $self->{trace_level} || 1;
+                local $Log::Minimal::TRACE_LEVEL
+                    = defined $self->{trace_level} ? $self->{trace_level} : 1;
                 local $Log::Minimal::LOG_LEVEL = uc $self->{log_level} if $self->{log_level};
                 local $Log::Minimal::PRINT = $self->{_print};
                 $parent_code->( ($suffix eq 'd') ? Log::Minimal::ddf(@_) : @_ );
