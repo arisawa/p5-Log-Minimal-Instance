@@ -19,10 +19,9 @@ BEGIN {
             no strict 'refs';
             my $code = sub {
                 my $self = shift;
-                my $pattern = $self->{pattern};
                 local $Log::Minimal::TRACE_LEVEL = $Log::Minimal::TRACE_LEVEL || 1;
-                local $Log::Minimal::LOG_LEVEL = uc $self->{level} if $self->{level};
-                local $Log::Minimal::PRINT = $self->{_print};
+                local $Log::Minimal::LOG_LEVEL   = uc $self->{level} if $self->{level};
+                local $Log::Minimal::PRINT       = $self->{_print};
                 $parent_code->( ($suffix eq 'd') ? Log::Minimal::ddf(@_) : @_ );
             };
             *{$method} = $code;
@@ -38,7 +37,7 @@ sub new {
 
     bless {
         level   => $args{level} || 'DEBUG',
-        pattern => $pattern,
+        _fh     => $fh,
         _print  => $fh ? sub {
             my ($time, $type, $message, $trace) = @_;
             print {$fh}  "$time [$type] $message at $trace\n"
@@ -76,6 +75,7 @@ sub debugd {
     my $print = $self->{_print};
 
     local $Log::Minimal::TRACE_LEVEL = $Log::Minimal::TRACE_LEVEL || 0;
+    local $Log::Minimal::LOG_LEVEL   = uc $self->{level} if $self->{level};
     local $Log::Minimal::PRINT = sub {
         my ($time, $type, $message, $trace, $raw_message) = @_;
         local $Data::Dumper::Indent   = 1;
@@ -84,7 +84,12 @@ sub debugd {
         local $Data::Dumper::Sortkeys = 1;
         $message = Data::Dumper::Dumper($raw_message);
 
-        print STDERR "$time [$type DUMP]\n$message at $trace\n";
+        if (my $fh = $self->{_fh}) {
+            print {$fh}  "$time [$type]\n$message at $trace\n";
+        }
+        else {
+            print STDERR "$time [$type]\n$message at $trace\n";
+        }
     };
     Log::Minimal::_log('DEBUG', 0, $stuff);
 
