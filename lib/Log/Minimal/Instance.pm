@@ -19,8 +19,8 @@ BEGIN {
             no strict 'refs';
             my $code = sub {
                 my $self = shift;
-                local $Log::Minimal::TRACE_LEVEL = $Log::Minimal::TRACE_LEVEL || 1;
-                local $Log::Minimal::LOG_LEVEL   = uc $self->{level} if $self->{level};
+                local $Log::Minimal::TRACE_LEVEL = ($Log::Minimal::TRACE_LEVEL||0) + 1;
+                local $Log::Minimal::LOG_LEVEL   = $self->{level};
                 local $Log::Minimal::PRINT       = $self->{_print};
                 $parent_code->( ($suffix eq 'd') ? Log::Minimal::ddf(@_) : @_ );
             };
@@ -32,51 +32,51 @@ BEGIN {
 sub new {
     my ($class, %args) = @_;
 
-    my $pattern = $args{pattern} || undef;
-    my $fh      = $pattern ? File::Stamped->new( pattern => $pattern ) : undef;
+    my $pattern  = $args{pattern}  || undef;
+    my $base_dir = $args{base_dir} || '.';
+
+    my $fh;
+    if ($pattern) {
+        $pattern = $class->_build_pattern($base_dir, $pattern);
+        $fh = File::Stamped->new( pattern => $pattern );
+    }
+    else {
+        $fh = *STDERR;
+    }
 
     bless {
-        level   => $args{level} || 'DEBUG',
-        _fh     => $fh,
-        _print  => $fh ? sub {
+        level    => $args{level} || 'DEBUG',
+        pattern  => $pattern,
+        base_dir => $base_dir,
+        _fh      => $fh,
+        _print   => sub {
             my ($time, $type, $message, $trace) = @_;
             print {$fh}  "$time [$type] $message at $trace\n"
-        } : sub {
-            my ($time, $type, $message, $trace) = @_;
-            print STDERR "$time [$type] $message at $trace\n"
         },
     }, $class;
 }
 
 sub log_to {
-    my ($self, $pattern, $message) = @_;
+    my ($self, $pattern, @args) = @_;
 
-    my $fh = File::Stamped->new( pattern => $pattern );
+    $pattern = $self->_build_pattern($self->{base_dir}, $pattern);
+    my $fh   = File::Stamped->new( pattern => $pattern );
 
-    my $print = $self->{_print};
-
-    local $Log::Minimal::TRACE_LEVEL = $Log::Minimal::TRACE_LEVEL || 0;
-    local $Log::Minimal::LOG_LEVEL = uc $self->{level} if $self->{level};
-    local $Log::Minimal::PRINT = sub {
+    local $self->{_print} = sub {
         my ($time, $type, $message, $trace) = @_;
         print {$fh} "$time $message at $trace\n";
     };
 
     # Must be logging!
     local $Log::Minimal::LOG_LEVEL = 'DEBUG';
-    Log::Minimal::_log('CRITICAL', 0, $message);
-
-    $self->{_print} = $print;
+    $self->critf(@args);
 }
 
 sub debugd {
     my ($self, $stuff) = @_;
 
-    my $print = $self->{_print};
-
-    local $Log::Minimal::TRACE_LEVEL = $Log::Minimal::TRACE_LEVEL || 0;
-    local $Log::Minimal::LOG_LEVEL   = uc $self->{level} if $self->{level};
-    local $Log::Minimal::PRINT = sub {
+    local $Log::Minimal::TRACE_LEVEL = ($Log::Minimal::TRACE_LEVEL||0) + 1;
+    local $self->{_print} = sub {
         my ($time, $type, $message, $trace, $raw_message) = @_;
         local $Data::Dumper::Indent   = 1;
         local $Data::Dumper::Terse    = 1;
@@ -84,18 +84,19 @@ sub debugd {
         local $Data::Dumper::Sortkeys = 1;
         $message = Data::Dumper::Dumper($raw_message);
 
-        if (my $fh = $self->{_fh}) {
-            print {$fh}  "$time [$type]\n$message at $trace\n";
-        }
-        else {
-            print STDERR "$time [$type]\n$message at $trace\n";
-        }
+        print { $self->{_fh} } "$time [$type DUMP]\n$message at $trace\n";
     };
-    Log::Minimal::_log('DEBUG', 0, $stuff);
-
-    $self->{_print} = $print;
+    $self->debugf($stuff);
 }
 
+sub _build_pattern {
+    my ($self, $base_dir, $pattern) = @_;
+
+    unless (File::Spec->file_name_is_absolute($pattern)) {
+        $pattern = File::Spec->catfile($base_dir, $pattern);
+    }
+    return $pattern;
+}
 
 1;
 
