@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use parent 'Log::Minimal';
 use File::Stamped;
+use File::Spec;
 
 our $VERSION = '0.01';
 
@@ -32,18 +33,25 @@ BEGIN {
 sub new {
     my ($class, %args) = @_;
 
-    my $pattern = $args{pattern} || undef;
-    my $fh      = $pattern ? File::Stamped->new( pattern => $pattern ) : undef;
+    my $pattern  = $args{pattern}  || undef;
+    my $base_dir = $args{base_dir} || '.';
+
+    my $fh;
+    if ($pattern) {
+        $pattern = $class->_build_pattern($base_dir, $pattern);
+        $fh = File::Stamped->new( pattern => $pattern );
+    }
+    else {
+        $fh = *STDERR;
+    }
 
     bless {
-        level   => $args{level} || 'DEBUG',
-        _fh     => $fh,
-        _print  => $fh ? sub {
+        level    => $args{level} || 'DEBUG',
+        pattern  => $pattern,
+        base_dir => $base_dir,
+        _print   => sub {
             my ($time, $type, $message, $trace) = @_;
             print {$fh}  "$time [$type] $message at $trace\n"
-        } : sub {
-            my ($time, $type, $message, $trace) = @_;
-            print STDERR "$time [$type] $message at $trace\n"
         },
     }, $class;
 }
@@ -51,6 +59,7 @@ sub new {
 sub log_to {
     my ($self, $pattern, $message) = @_;
 
+    $pattern = $self->_build_pattern($self->{base_dir}, $pattern);
     my $fh = File::Stamped->new( pattern => $pattern );
 
     my $print = $self->{_print};
@@ -96,6 +105,14 @@ sub debugd {
     $self->{_print} = $print;
 }
 
+sub _build_pattern {
+    my ($self, $base_dir, $pattern) = @_;
+
+    unless (File::Spec->file_name_is_absolute($pattern)) {
+        $pattern = File::Spec->catfile($base_dir, $pattern);
+    }
+    return $pattern;
+}
 
 1;
 
