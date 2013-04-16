@@ -46,7 +46,6 @@ sub new {
 
     bless {
         level    => $args{level} || 'DEBUG',
-        pattern  => $pattern,
         base_dir => $base_dir,
         _fh      => $fh,
         _print   => sub {
@@ -84,7 +83,7 @@ sub debugd {
         local $Data::Dumper::Sortkeys = 1;
         $message = Data::Dumper::Dumper($raw_message);
 
-        print { $self->{_fh} } "$time [$type DUMP]\n$message at $trace\n";
+        print { $self->{_fh} } "$time [$type]\n$message at $trace\n";
     };
     $self->debugf($stuff);
 }
@@ -116,7 +115,8 @@ Log::Minimal::Instance - Instance based on Log::Minimal
 
   # log to file
   my $log = Log::Minimal::Instance->new(
-      pattern => './log/myapp.log.%Y%m%d',  # File::Stamped style
+      base_dir => 'log',
+      pattern  => 'myapp.log.%Y%m%d',  # File::Stamped style
   );
   $log->debugf('debug');  # same of Log::Minimal
   $log->infof('info');
@@ -137,7 +137,7 @@ Log::Minimal::Instance - Instance based on Log::Minimal
   # original methods
   $log->infod(\%hash);
   $log->warnd(\@array);
-  $log->log_to($pattern, $message);
+  $log->log_to('finish.log.%Y%m%d', $message); # log to log/finish.log.20130101
 
 =head1 DESCRIPTION
 
@@ -148,6 +148,28 @@ Log::Minimal::Instance is used in Log::Minimal based module to create an instanc
 See L<Log::Minimal>
 
 =over 4
+
+=item new(%args)
+
+Create new instance of Log::Minimal::Instance based on L<Log::Minimal>.
+
+Attributes are following:
+
+=over 4
+
+=item level
+
+  Set to $Log::Minimal::LOG_LEVEL
+
+=item base_dir
+
+  Base directory for log file
+
+=item pattern
+
+  This is file name pattern that is same of L<File::Stamped>.
+
+=back
 
 =item critf
 
@@ -191,7 +213,7 @@ When expressed in code the above methods:
 =item log_to($pattern, $message)
 
   # $pattern is File::Stamped style.
-  $log->log_to('./log/trace.log.%Y%m%d', 'traceroute');
+  $log->log_to('trace.log.%Y%m%d', 'traceroute');
 
   # ./log/trace.log.20130101
   2013-01-01T16:15:40 traceroute at lib/MyApp.pm line 13
@@ -212,5 +234,9 @@ This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
 
 =head1 SEE ALSO
+
+L<Log::Minimal>
+
+L<File::Stamped>
 
 =cut
