@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use parent 'Log::Minimal';
 use File::Stamped;
+use File::Spec;
 
 our $VERSION = '0.01';
 
@@ -66,8 +67,8 @@ sub log_to {
         print {$fh} "$time $message at $trace\n";
     };
 
-    # Must be logging!
-    local $Log::Minimal::LOG_LEVEL = 'DEBUG';
+    local $Log::Minimal::TRACE_LEVEL = ($Log::Minimal::TRACE_LEVEL||0) + 1;
+    local $Log::Minimal::LOG_LEVEL   = 'DEBUG'; # Must be logging!
     $self->critf(@args);
 }
 
