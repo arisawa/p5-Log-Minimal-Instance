@@ -68,9 +68,9 @@ subtest 'log_to' => sub {
 
     my $log = Log::Minimal::Instance->new(pattern => $fname1);
     $log->infof('default file 1st');
-    $log->log_to($fname2, 'specified file 1st');
+    $log->log_to($fname2, 'specified file 1st'); my $log_to_line1 = __LINE__;
     $log->infof('default file 2nd');
-    $log->log_to($fname2, 'specified file 2nd');
+    $log->log_to($fname2, 'specified file 2nd'); my $log_to_line2 = __LINE__;
 
     open my $fh1, '<', $fname1 or die $!;
     like(scalar <$fh1>, qr/\[INFO] .*default file 1st/i, "default 1st");
@@ -78,8 +78,8 @@ subtest 'log_to' => sub {
     close $fh1;
 
     open my $fh2, '<', $fname2 or die $!;
-    like(scalar <$fh2>, qr/.*specified file 1st/i, "specified 1st");
-    like(scalar <$fh2>, qr/.*specified file 2nd/i, "specified 2nd");
+    like(scalar <$fh2>, qr/.*specified file 1st at .*$log_to_line1/i, "specified 1st");
+    like(scalar <$fh2>, qr/.*specified file 2nd at .*$log_to_line2/i, "specified 2nd");
     close $fh2;
 };
 
