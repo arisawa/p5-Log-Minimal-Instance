@@ -13,7 +13,6 @@ BEGIN {
     for my $level (qw/crit warn info debug croak/) {
         for my $suffix (qw/f ff d/) {
             my $method = $level.$suffix;
-            next if $method eq 'debugd';
 
             my $parent_code = Log::Minimal->can( ($suffix eq 'd') ? $level."f" : $method );
 
