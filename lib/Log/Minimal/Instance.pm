@@ -72,23 +72,6 @@ sub log_to {
     $self->critf(@args);
 }
 
-sub debugd {
-    my ($self, $stuff) = @_;
-
-    local $Log::Minimal::TRACE_LEVEL = ($Log::Minimal::TRACE_LEVEL||0) + 1;
-    local $self->{_print} = sub {
-        my ($time, $type, $message, $trace, $raw_message) = @_;
-        local $Data::Dumper::Indent   = 1;
-        local $Data::Dumper::Terse    = 1;
-        local $Data::Dumper::Useqq    = 1;
-        local $Data::Dumper::Sortkeys = 1;
-        $message = Data::Dumper::Dumper($raw_message);
-
-        print { $self->{_fh} } "$time [$type]\n$message at $trace\n";
-    };
-    $self->debugf($stuff);
-}
-
 sub _build_pattern {
     my ($self, $base_dir, $pattern) = @_;
 
@@ -119,13 +102,14 @@ Log::Minimal::Instance - Instance based on Log::Minimal
       base_dir => 'log',
       pattern  => 'myapp.log.%Y%m%d',  # File::Stamped style
   );
-  $log->debugf('debug');  # same of Log::Minimal
+
+  # You can call Log::Minimal's method
+  $log->debugf('debug');
   $log->infof('info');
 
-  # ./log/myapp.log.20130101 
+  # ./log/myapp.log.20130101
   2013-01-01T16:15:39 [DEBUG] debug at lib/MyApp.pm line 10
   2013-01-01T16:15:39 [INFO] info at lib/MyApp.pm line 11
-  ## You cannot specify format now ;(
 
   # log to stderr
   $log = Log::Minimal::Instance->new();
