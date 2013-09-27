@@ -206,7 +206,7 @@ When expressed in code the above methods:
 
 =head1 AUTHOR
 
-Kosuke Arisawa E<lt>arisawa@gmail.com<gt>
+Kosuke Arisawa E<lt>arisawa {at} gmail.comE<gt>
 
 =head1 COPYRIGHT
 
