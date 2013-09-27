@@ -102,7 +102,7 @@ Log::Minimal::Instance - Instance based on Log::Minimal
       pattern  => 'myapp.log.%Y%m%d',  # File::Stamped style
   );
 
-  # You can call Log::Minimal's method
+  # same as Log::Minimal method
   $log->debugf('debug');
   $log->infof('info');
 
