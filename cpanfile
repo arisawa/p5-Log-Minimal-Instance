@@ -6,3 +6,4 @@ on 'test' => sub {
 
 requires 'Log::Minimal',  0.14;
 requires 'File::Stamped', 0.03;
+requires 'parent',        0.223;
