@@ -43,7 +43,8 @@
       "runtime" : {
          "requires" : {
             "File::Stamped" : "0.03",
-            "Log::Minimal" : "0.14"
+            "Log::Minimal" : "0.14",
+            "parent" : "0.223"
          }
       },
       "test" : {
@@ -66,10 +67,11 @@
          "web" : "https://github.com/arisawa/p5-Log-Minimal-Instance"
       }
    },
-   "version" : "0.01",
+   "version" : "0.02",
    "x_contributors" : [
       "xaicron <xaicron@gmail.com>",
-      "Kosuke Arisawa <arisawa@gmail.com>",
-      "Kosuke Arisawa <arisawa@dena.jp>"
+      "Kosuke Arisawa <arisawa@dena.jp>",
+      "Syohei YOSHIDA <syohex@gmail.com>",
+      "Kosuke Arisawa <arisawa@gmail.com>"
    ]
 }
