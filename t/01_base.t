@@ -83,4 +83,21 @@ subtest 'log_to' => sub {
     close $fh2;
 };
 
+subtest 'File::Stamped options' => sub {
+    my $fname = _tempfile();
+    my $log   = Log::Minimal::Instance->new(
+        pattern           => $fname,
+        iomode            => '>>:encoding(euc-jp)',
+        autoflush         => 0,
+        close_after_write => 0,
+        rotationtime      => 86400 * 30,
+    );
+    my $fh = $log->{_fh};
+
+    is *$fh->{iomode}, '>>:encoding(euc-jp)';
+    is *$fh->{autoflush}, 0;
+    is *$fh->{close_after_write}, 0;
+    is *$fh->{rotationtime}, 86400 * 30;
+};
+
 done_testing;

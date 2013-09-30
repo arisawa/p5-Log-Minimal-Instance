@@ -32,13 +32,23 @@ BEGIN {
 sub new {
     my ($class, %args) = @_;
 
-    my $pattern  = $args{pattern}  || undef;
-    my $base_dir = $args{base_dir} || '.';
+    my $pattern           = $args{pattern}      || undef;
+    my $base_dir          = $args{base_dir}     || '.';
+    my $iomode            = $args{iomode}       || '>>:utf8';
+    my $rotationtime      = $args{rotationtime} || 1;
+    my $autoflush         = defined $args{autoflush} ? $args{autoflush} : 1;
+    my $close_after_write = defined $args{close_after_write} ? $args{close_after_write} : 1;
 
     my $fh;
     if ($pattern) {
         $pattern = $class->_build_pattern($base_dir, $pattern);
-        $fh = File::Stamped->new( pattern => $pattern );
+        $fh = File::Stamped->new(
+            pattern           => $pattern,
+            iomode            => $iomode,
+            autoflush         => $autoflush,
+            close_after_write => $close_after_write,
+            rotationtime      => $rotationtime,
+        );
     }
     else {
         $fh = *STDERR;
