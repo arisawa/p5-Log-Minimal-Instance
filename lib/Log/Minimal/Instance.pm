@@ -55,8 +55,12 @@ sub new {
     }
 
     bless {
-        level    => $args{level} || 'DEBUG',
-        base_dir => $base_dir,
+        level             => $args{level} || 'DEBUG',
+        base_dir          => $base_dir,
+        iomode            => $iomode,
+        rotationtime      => $rotationtime,
+        autoflush         => $autoflush,
+        close_after_write => $close_after_write,
         _fh      => $fh,
         _print   => sub {
             my ($time, $type, $message, $trace) = @_;
@@ -69,8 +73,15 @@ sub log_to {
     my ($self, $pattern, @args) = @_;
 
     $pattern = $self->_build_pattern($self->{base_dir}, $pattern);
-    my $fh   = File::Stamped->new( pattern => $pattern );
+    my $fh   = File::Stamped->new(
+        pattern           => $pattern,
+        iomode            => $self->{iomode},
+        autoflush         => $self->{autoflush},
+        close_after_write => $self->{close_after_write},
+        rotationtime      => $self->{rotationtime},
+    );
 
+    local $self->{_fh}    = $fh;
     local $self->{_print} = sub {
         my ($time, $type, $message, $trace) = @_;
         print {$fh} "$time $message at $trace\n";
