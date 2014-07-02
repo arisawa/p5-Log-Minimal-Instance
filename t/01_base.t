@@ -100,4 +100,27 @@ subtest 'File::Stamped options' => sub {
     is *$fh->{rotationtime}, 86400 * 30;
 };
 
+subtest 'log_to with File::Stamped options' => sub {
+    my $fname = _tempfile();
+    my $log   = Log::Minimal::Instance->new(
+        pattern           => $fname,
+        iomode            => '>>:encoding(euc-jp)',
+        autoflush         => 0,
+        close_after_write => 0,
+        rotationtime      => 86400 * 30,
+    );
+
+    no warnings 'redefine';
+    local *Log::Minimal::Instance::critf = sub {
+        my ($self, @args) = @_;
+        my $fh = $self->{_fh};
+        is *$fh->{iomode}, '>>:encoding(euc-jp)';
+        is *$fh->{autoflush}, 0;
+        is *$fh->{close_after_write}, 0;
+        is *$fh->{rotationtime}, 86400 * 30;
+    };
+
+    $log->log_to($fname, 'foobar');
+};
+
 done_testing;
