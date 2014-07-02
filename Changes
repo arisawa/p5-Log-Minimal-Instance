@@ -2,6 +2,9 @@ Revision history for Perl extension Log::Minimal::Instance
 
 {{$NEXT}}
 
+0.04 2014-07-02T06:43:58Z
+    - Fix to pass File::Stamped options
+
 0.03 2013-09-30T09:30:09Z
     - Add File::Stamped options by @tmitz
 

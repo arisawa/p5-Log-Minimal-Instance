@@ -39,20 +39,22 @@ Log::Minimal::Instance is used in Log::Minimal based module to create an instanc
 
 # IMPORTED METHODS
 
-See [Log::Minimal](http://search.cpan.org/perldoc?Log::Minimal)
+See [Log::Minimal](https://metacpan.org/pod/Log::Minimal)
 
 - new(%args)
 
-    Create new instance of Log::Minimal::Instance based on [Log::Minimal](http://search.cpan.org/perldoc?Log::Minimal).
+    Create new instance of Log::Minimal::Instance based on [Log::Minimal](https://metacpan.org/pod/Log::Minimal).
 
     Attributes are following:
 
     - level
 
             Set to $Log::Minimal::LOG_LEVEL
+
     - base\_dir
 
             Base directory for log file
+
     - pattern
 
             This is file name pattern that is same of L<File::Stamped>.
@@ -101,6 +103,6 @@ it under the same terms as Perl itself.
 
 # SEE ALSO
 
-[Log::Minimal](http://search.cpan.org/perldoc?Log::Minimal)
+[Log::Minimal](https://metacpan.org/pod/Log::Minimal)
 
-[File::Stamped](http://search.cpan.org/perldoc?File::Stamped)
+[File::Stamped](https://metacpan.org/pod/File::Stamped)
