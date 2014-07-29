@@ -45,6 +45,7 @@ sub new {
     my $fh;
     if ($pattern) {
         $pattern = $class->_build_pattern($base_dir, $pattern);
+        $symlink = $class->_build_pattern($base_dir, $symlink);
         $fh = File::Stamped->new(
             defined $pattern  ? (pattern  => $pattern)  : (),
             defined $callback ? (callback => $callback) : (),
@@ -90,8 +91,9 @@ sub log_to {
     }
 
     my ($pattern, $symlink, $callback);
-    $pattern  = $self->_build_pattern($self->{base_dir}, $opts->{pattern});
-    $symlink  = $self->_build_pattern($self->{base_dir}, $opts->{symlink}) if defined $opts->{symlink};
+    my $base_dir = defined $opts->{base_dir} ? $opts->{base_dir} : $self->{base_dir};
+    $pattern  = $self->_build_pattern($base_dir, $opts->{pattern});
+    $symlink  = $self->_build_pattern($base_dir, $opts->{symlink});
     $callback = exists $opts->{callback} ? $opts->{callback} : undef;
 
     my $fh = File::Stamped->new(
@@ -118,6 +120,7 @@ sub log_to {
 
 sub _build_pattern {
     my ($self, $base_dir, $pattern) = @_;
+    return unless defined $pattern;
 
     unless (File::Spec->file_name_is_absolute($pattern)) {
         $pattern = File::Spec->catfile($base_dir, $pattern);

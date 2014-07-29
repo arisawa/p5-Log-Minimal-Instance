@@ -14,6 +14,10 @@ sub _tempfile {
     $fname;
 }
 
+sub _tempdir {
+    my $dir = File::Temp::tempdir(CLEANUP => 1);
+}
+
 subtest 'instance' => sub {
     my $log = Log::Minimal::Instance->new;
     isa_ok $log, 'Log::Minimal::Instance';
@@ -140,6 +144,25 @@ subtest 'with symlink' => sub {
     like scalar <$sfh>, qr/\[INFO] .*foo/;
 };
 
+subtest 'with symlink and base_dir' => sub {
+    my $base_dir = _tempdir();
+    my $fname    = "pattern";
+    my $symlink  = "symlink";
+
+    my $log = Log::Minimal::Instance->new(
+        pattern  => $fname,
+        symlink  => $symlink,
+        base_dir => $base_dir,
+    );
+
+    $log->infof('foo');
+    open my $fh, '<', "$base_dir/$fname";
+    like scalar <$fh>, qr/\[INFO] .*foo/;
+
+    open my $sfh, '<', "$base_dir/$symlink";
+    like scalar <$sfh>, qr/\[INFO] .*foo/;
+};
+
 subtest 'log to with symlink (array)' => sub {
     my $fname   = _tempfile();
     my $symlink = "$fname.symlink";
@@ -165,6 +188,21 @@ subtest 'log to with symlink (array)' => sub {
     like scalar <$fh>, qr/ bar/;
 
     open my $sfh, '<', $symlink;
+    like scalar <$sfh>, qr/ bar/;
+};
+
+subtest 'log to with symlink (array) and base_dir' => sub {
+    my $base_dir = _tempdir();
+    my $fname    = "pattern";
+    my $symlink  = "symlink";
+
+    my $log = Log::Minimal::Instance->new(base_dir => $base_dir);
+    $log->log_to([ $fname, $symlink ], 'bar');
+
+    open my $fh, '<', "$base_dir/$fname";
+    like scalar <$fh>, qr/ bar/;
+
+    open my $sfh, '<', "$base_dir/$symlink";
     like scalar <$sfh>, qr/ bar/;
 };
 
@@ -179,6 +217,26 @@ subtest 'log to with symlink (hash)' => sub {
     like scalar <$fh>, qr/ baz/;
 
     open my $sfh, '<', $symlink;
+    like scalar <$sfh>, qr/ baz/;
+};
+
+subtest 'log to with symlink (hash) and overwrite base_dir' => sub {
+    my $base_dir     = _tempdir();
+    my $new_base_dir = _tempdir();
+    my $fname        = "pattern";
+    my $symlink      = "symlink";
+
+    my $log = Log::Minimal::Instance->new(base_dir => $base_dir);
+    $log->log_to({
+        pattern  => $fname,
+        symlink  => $symlink,
+        base_dir => $new_base_dir,
+    }, 'baz');
+
+    open my $fh, '<', "$new_base_dir/$fname";
+    like scalar <$fh>, qr/ baz/;
+
+    open my $sfh, '<', "$new_base_dir/$symlink";
     like scalar <$sfh>, qr/ baz/;
 };
 
