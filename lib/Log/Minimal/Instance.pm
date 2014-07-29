@@ -32,18 +32,23 @@ BEGIN {
 sub new {
     my ($class, %args) = @_;
 
-    my $pattern           = $args{pattern}      || undef;
-    my $base_dir          = $args{base_dir}     || '.';
-    my $iomode            = $args{iomode}       || '>>:utf8';
-    my $rotationtime      = $args{rotationtime} || 1;
-    my $autoflush         = defined $args{autoflush} ? $args{autoflush} : 1;
-    my $close_after_write = defined $args{close_after_write} ? $args{close_after_write} : 1;
+    my $pattern           = exists $args{pattern}           ? $args{pattern}           : undef;
+    my $symlink           = exists $args{symlink}           ? $args{symlink}           : undef;
+    my $base_dir          = exists $args{base_dir}          ? $args{base_dir}          : '.';
+    my $iomode            = exists $args{iomode}            ? $args{iomode}            : '>>:utf8';
+    my $rotationtime      = exists $args{rotationtime}      ? $args{rotationtime}      : 1;
+    my $autoflush         = exists $args{autoflush}         ? $args{autoflush}         : 1;
+    my $close_after_write = exists $args{close_after_write} ? $args{close_after_write} : 1;
+    my $auto_make_dir     = exists $args{auto_make_dir}     ? $args{auto_make_dir}     : 0;
+    my $callback          = exists $args{callback}          ? $args{callback}          : undef;
 
     my $fh;
     if ($pattern) {
         $pattern = $class->_build_pattern($base_dir, $pattern);
         $fh = File::Stamped->new(
-            pattern           => $pattern,
+            defined $pattern  ? (pattern  => $pattern)  : (),
+            defined $callback ? (callback => $callback) : (),
+            defined $symlink  ? (symlink  => $symlink)  : (),
             iomode            => $iomode,
             autoflush         => $autoflush,
             close_after_write => $close_after_write,
@@ -61,8 +66,10 @@ sub new {
         rotationtime      => $rotationtime,
         autoflush         => $autoflush,
         close_after_write => $close_after_write,
-        _fh      => $fh,
-        _print   => sub {
+        auto_make_dir     => $auto_make_dir,
+
+        _fh    => $fh,
+        _print => sub {
             my ($time, $type, $message, $trace) = @_;
             print {$fh}  "$time [$type] $message at $trace\n"
         },
@@ -70,15 +77,32 @@ sub new {
 }
 
 sub log_to {
-    my ($self, $pattern, @args) = @_;
+    my ($self, $opts, @args) = @_;
 
-    $pattern = $self->_build_pattern($self->{base_dir}, $pattern);
-    my $fh   = File::Stamped->new(
-        pattern           => $pattern,
-        iomode            => $self->{iomode},
-        autoflush         => $self->{autoflush},
-        close_after_write => $self->{close_after_write},
-        rotationtime      => $self->{rotationtime},
+    if (ref $opts eq 'ARRAY') {
+        $opts = {
+            pattern => $opts->[0],
+            symlink => $opts->[1],
+        };
+    }
+    elsif (!ref $opts) {
+        $opts = { pattern => $opts };
+    }
+
+    my ($pattern, $symlink, $callback);
+    $pattern  = $self->_build_pattern($self->{base_dir}, $opts->{pattern});
+    $symlink  = $self->_build_pattern($self->{base_dir}, $opts->{symlink}) if defined $opts->{symlink};
+    $callback = exists $opts->{callback} ? $opts->{callback} : undef;
+
+    my $fh = File::Stamped->new(
+        defined $pattern  ? (pattern  => $pattern)  : (),
+        defined $callback ? (callback => $callback) : (),
+        defined $symlink  ? (symlink  => $symlink)  : (),
+        iomode            => defined $opts->{iomode}            ? $opts->{iomode}            : $self->{iomode},
+        autoflush         => defined $opts->{autoflush}         ? $opts->{autoflush}         : $self->{autoflush},
+        close_after_write => defined $opts->{close_after_write} ? $opts->{close_after_write} : $self->{close_after_write},
+        rotationtime      => defined $opts->{rotationtime}      ? $opts->{rotationtime}      : $self->{rotationtime},
+        auto_make_dir     => defined $opts->{auto_make_dir}     ? $opts->{auto_make_dir}     : $self->{auto_make_dir},
     );
 
     local $self->{_fh}    = $fh;
@@ -174,6 +198,34 @@ Attributes are following:
 
   This is file name pattern that is same of L<File::Stamped>.
 
+=item symlink
+
+  Generate symlink file for log file.
+
+=item callback
+
+  See L<File::Stamped>.
+
+=item close_after_write
+
+  Default value is 1.
+
+=item iomode
+
+  Default value is '>>:utf8'.
+
+=item autoflush
+
+  Default value is true.
+
+=item rotationtime
+
+  Default value is true.
+
+=item auto_make_dir
+
+  Default value is false.
+
 =back
 
 =item critf
@@ -217,11 +269,18 @@ When expressed in code the above methods:
 
 =item log_to($pattern, $message)
 
+=item log_to([ $pattern, $symlink ], $message)
+
+=item log_to({ pattern => $pattern, symlink => $symlink, ... }, $message)
+
   # $pattern is File::Stamped style.
   $log->log_to('trace.log.%Y%m%d', 'traceroute');
 
   # ./log/trace.log.20130101
   2013-01-01T16:15:40 traceroute at lib/MyApp.pm line 13
+
+  # with symlink
+  $log->log_to([ 'trace.log.%Y%m%d', 'trace.log' ], 'blah blah blah');
 
 =back
 

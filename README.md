@@ -59,6 +59,34 @@ See [Log::Minimal](https://metacpan.org/pod/Log::Minimal)
 
             This is file name pattern that is same of L<File::Stamped>.
 
+    - symlink
+
+            Generate symlink file for log file.
+
+    - callback
+
+            See L<File::Stamped>.
+
+    - close\_after\_write
+
+            Default value is 1.
+
+    - iomode
+
+            Default value is '>>:utf8'.
+
+    - autoflush
+
+            Default value is true.
+
+    - rotationtime
+
+            Default value is true.
+
+    - auto\_make\_dir
+
+            Default value is false.
+
 - critf
 - warnf
 - infof
@@ -81,12 +109,17 @@ When expressed in code the above methods:
     infof( ddf(\%hash) );
 
 - log\_to($pattern, $message)
+- log\_to(\[ $pattern, $symlink \], $message)
+- log\_to({ pattern => $pattern, symlink => $symlink, ... }, $message)
 
         # $pattern is File::Stamped style.
         $log->log_to('trace.log.%Y%m%d', 'traceroute');
 
         # ./log/trace.log.20130101
         2013-01-01T16:15:40 traceroute at lib/MyApp.pm line 13
+
+        # with symlink
+        $log->log_to([ 'trace.log.%Y%m%d', 'trace.log' ], 'blah blah blah');
 
 # AUTHOR
 

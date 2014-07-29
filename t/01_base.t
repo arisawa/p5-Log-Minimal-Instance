@@ -123,4 +123,63 @@ subtest 'log_to with File::Stamped options' => sub {
     $log->log_to($fname, 'foobar');
 };
 
+subtest 'with symlink' => sub {
+    my $fname   = _tempfile();
+    my $symlink = "$fname.symlink";
+
+    my $log = Log::Minimal::Instance->new(
+        pattern => $fname,
+        symlink => $symlink,
+    );
+
+    $log->infof('foo');
+    open my $fh, '<', $fname;
+    like scalar <$fh>, qr/\[INFO] .*foo/;
+
+    open my $sfh, '<', $symlink;
+    like scalar <$sfh>, qr/\[INFO] .*foo/;
+};
+
+subtest 'log to with symlink (array)' => sub {
+    my $fname   = _tempfile();
+    my $symlink = "$fname.symlink";
+
+    my $log = Log::Minimal::Instance->new;
+    $log->log_to([ $fname, $symlink ], 'bar');
+
+    open my $fh, '<', $fname;
+    like scalar <$fh>, qr/ bar/;
+
+    open my $sfh, '<', $symlink;
+    like scalar <$sfh>, qr/ bar/;
+};
+
+subtest 'log to with symlink (array)' => sub {
+    my $fname   = _tempfile();
+    my $symlink = "$fname.symlink";
+
+    my $log = Log::Minimal::Instance->new;
+    $log->log_to([ $fname, $symlink ], 'bar');
+
+    open my $fh, '<', $fname;
+    like scalar <$fh>, qr/ bar/;
+
+    open my $sfh, '<', $symlink;
+    like scalar <$sfh>, qr/ bar/;
+};
+
+subtest 'log to with symlink (hash)' => sub {
+    my $fname   = _tempfile();
+    my $symlink = "$fname.symlink";
+
+    my $log = Log::Minimal::Instance->new;
+    $log->log_to({ pattern => $fname, symlink => $symlink }, 'baz');
+
+    open my $fh, '<', $fname;
+    like scalar <$fh>, qr/ baz/;
+
+    open my $sfh, '<', $symlink;
+    like scalar <$sfh>, qr/ baz/;
+};
+
 done_testing;
