@@ -6,7 +6,7 @@ use parent 'Log::Minimal';
 use File::Stamped;
 use File::Spec;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 BEGIN {
     # for object methods

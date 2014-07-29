@@ -4,7 +4,7 @@
       "Kosuke Arisawa <arisawa {at} gmail.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Minilla/v2.1.1, CPAN::Meta::Converter version 2.142060",
+   "generated_by" : "Minilla/v2.1.1, CPAN::Meta::Converter version 2.141520",
    "license" : [
       "perl_5"
    ],
@@ -67,13 +67,13 @@
          "web" : "https://github.com/arisawa/p5-Log-Minimal-Instance"
       }
    },
-   "version" : "0.04",
+   "version" : "0.05",
    "x_contributors" : [
       "Kosuke Arisawa <arisawa@dena.jp>",
       "Syohei YOSHIDA <syohex@gmail.com>",
       "Tomohiro Mitsumune <tomohiro.mitsumune@dena.com>",
+      "Kosuke Arisawa <kosuke.arisawa@dena.com>",
       "xaicron <xaicron@gmail.com>",
-      "Kosuke Arisawa <arisawa@gmail.com>",
-      "Kosuke Arisawa <kosuke.arisawa@dena.com>"
+      "Kosuke Arisawa <arisawa@gmail.com>"
    ]
 }
